@@ -1,6 +1,7 @@
 console.log("heelo?");
 
-let paragraph = document.getElementsByTagName('p');
-for(elt of paragraph){
-    elt.style['background-color']='#FF00FF';
+chrome.runtime.onMessage.addListener(gotMessage);
+function gotMessage(message,sender,sendResponse) {
+    console.log("message receive");
+    console.log(message);
 }

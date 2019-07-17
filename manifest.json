@@ -2,6 +2,10 @@
   "manifest_version": 2,
   "name": "ChromeWebtoonDownloader",
   "version": "0.2",
+  "browser_action": {
+    "default_icon": "icon_able.png",
+    "default_popup": "index.html"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -12,5 +16,6 @@
   ],
   "background": {
     "scripts": ["background.js"]
-  }
+  },
+  "permissions": ["tabs"]
 }
