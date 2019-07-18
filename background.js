@@ -1,31 +1,86 @@
 console.log("background running");
 
 //chrome.browserAction.setPopup({popup:"sketch/index.html"});
+var titleImgSrc={};
+
+chrome.runtime.onMessage.addListener(
+    function(message, sender, sendResponse) {
+        switch(message.type) {
+            case "content":
+                titleImgSrc[message.id]=message.src;
+                console.log(titleImgSrc);
+                break;
+            case "getSrc":
+                console.log(message.id+"scr :"+titleImgSrc[message.id]);
+                sendResponse(titleImgSrc[message.id]);
+                break;
+            default:
+                console.error("Unrecognised message: ", message);
+        }
+    }
+);
 
 chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
-    console.log("highlightInfo!");
-    console.log(highlightInfo.tabIds[0]);
+    console.log("highlightInfo!",highlightInfo.tabIds[0]);
     chrome.tabs.getSelected(null,function (tab) {
-        let msg=MakeMessage(tab);
-        console.log(msg);
-        chrome.tabs.sendMessage(tab.id,msg);
+        var msg=MakeMessage(tab);
+        if(msg.type=="naver"){
+            console.log(msg);
+            chrome.browserAction.setIcon({
+                path:"icon_able.png",
+                tabId: tab.id
+            });
+            chrome.browserAction.setPopup({
+                popup:"sketch/index.html",
+                tabId: tab.id
+            });
+            chrome.tabs.sendMessage(tab.id,msg);
+        }else{
+            chrome.browserAction.setIcon({
+                path:"icon_disable.png",
+                tabId: tab.id
+            });
+            chrome.browserAction.setPopup({
+                popup:"",
+                tabId: tab.id
+            });
+        }
     });
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    console.log("create!");
-    console.log(tab);
-    let msg=MakeMessage(tab);
-    console.log(msg);
-    chrome.tabs.sendMessage(tab.id,msg);
+    console.log("create!",tabId);
+    var msg=MakeMessage(tab);
+    if(msg.type=="naver"){
+        console.log(msg);
+        chrome.browserAction.setIcon({
+            path:"icon_able.png",
+            tabId: tab.id
+        });
+        chrome.browserAction.setPopup({
+            popup:"sketch/index.html",
+            tabId: tab.id
+        });
+        chrome.tabs.sendMessage(tab.id,msg);
+    }else{
+        chrome.browserAction.setIcon({
+            path:"icon_disable.png",
+            tabId: tab.id
+        });
+        chrome.browserAction.setPopup({
+            popup:"",
+            tabId: tab.id
+        });
+    }
 });
 
 function MakeMessage(tab){
     var tabUrl = tab.url;
     var tabId = tab.id;
     var type;
-    var titleId;
-    var qs = getQueryStringObject();
+    var titleId=null;
+    var qs = getUrlParams(tabUrl);
+    console.log(tab.id,tabUrl,qs);
     if( tabUrl.search("comic.naver.com")>0 && tabUrl.search("titleId")>0)
     {
         type="naver";
@@ -41,16 +96,8 @@ function MakeMessage(tab){
 
 }
 
-function getQueryStringObject() {
-    var a = window.location.search.substr(1).split('&');
-    if (a == "") return {};
-    var b = {};
-    for (var i = 0; i < a.length; ++i) {
-        var p = a[i].split('=', 2);
-        if (p.length == 1)
-            b[p[0]] = "";
-        else
-            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-    }
-    return b;
+function getUrlParams(tabUrl) {
+    var params = {};
+    tabUrl.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str, key, value) { params[key] = value; });
+    return params;
 }

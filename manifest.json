@@ -3,8 +3,8 @@
   "name": "ChromeWebtoonDownloader",
   "version": "0.2",
   "browser_action": {
-    "default_icon": "icon_able.png",
-    "default_popup": "index.html"
+    "default_icon": "icon_disable.png",
+    "default_popup": "sketch/index.html"
   },
   "content_scripts": [
     {
@@ -17,5 +17,8 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "permissions": ["tabs"]
+  "permissions": [
+    "tabs",
+    "storage"
+  ]
 }
