@@ -43,21 +43,29 @@
     display: inline-block;
 }
 
-.WebtoonTitle{
+input[type=number]{
+    text-align: right;
+    width: 50px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+
+    opacity: 1;
+
+}
+
+#WebtoonTitle{
     font-weight: bold;
     font-size: 12px;
     margin: 0px;
     display: inline-block;
 }
 
-.WebtoonTitleAutohr{
+#WebtoonTitleAutohr{
     font-size: 12px;
     margin: 0px;
     display: inline-block;
-}
-
-.NumbrInput{
-    width: 50px;
 }
 
 .WebtoonEpisodeHead{
