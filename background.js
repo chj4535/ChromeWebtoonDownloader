@@ -1,32 +1,43 @@
 console.log("background running");
 
-//chrome.browserAction.setPopup({popup:"sketch/index.html"});
-var titleImgSrc={};
+var TabInfo={}; //
 
 chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
+        var msg;
         switch(message.type) {
-            case "content":
-                console.log("content");
+            case "ConToBack_SaveTabComicInfo":
+                console.log("ContoBack_SaveTabComicInfo");
                 console.log(message);
-                titleImgSrc[message.id]=message;
+                TabInfo[message.id]=message;
                 console.log("titleImgSrc");
-                console.log(titleImgSrc);
+                console.log(TabInfo);
                 break;
-            case "getSrc":
-                console.log(message.id+"info :"+titleImgSrc[message.id]);
-                sendResponse(titleImgSrc[message.id]);
+            case "PopToBack_GetComicInfo":
+                console.log(message.id+"info :"+TabInfo[message.id]);
+                sendResponse(TabInfo[message.id]);
                 break;
-            case "comicDown":
+            case "PopToBack_ComicDown":
                 console.log(message);
-                DownNaverComics(message);
-                // var imgurl = "https://image-comic.pstatic.net/webtoon/131385/410/20190717224009_fa6ca476c9f607a91ee8a46ac1c24f64_IMAG01_1.jpg";
-                // chrome.downloads.download({url:imgurl},function(){
-                //     console.log("download begin, the downId is:");
-                // });
+                msg={
+                    type:"BackToCon_GetComicList",
+                    tabId:message.tabId
+                };
+                chrome.tabs.sendMessage(message.tabId,msg);
                 break;
-            default:
-                console.error("Unrecognised message: ", message);
+            case "ConToBack_ReturnImageList":
+                let ImageList = message.imageList;
+                let episodeName = TabInfo[message.tabId].episodeName;
+                var count=0;
+                for(Imageurl of ImageList){
+                    count++;
+                    chrome.downloads.download({
+                        url:Imageurl,
+                        filename:episodeName+"-"+FormatNumberLength(count,3)+".jpg"
+                    })
+                    //$.ajax({ url:Imageurl, success: function(data) { console.log(data); } });
+                }
+                break;
         }
     }
 );
@@ -35,14 +46,14 @@ chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
     console.log("highlightInfo!",highlightInfo.tabIds[0]);
     chrome.tabs.getSelected(null,function (tab) {
         var msg=MakeMessage(tab);
-        if(msg.type=="naver"){
+        if(msg.type=="BackToCon_NaverComicInfo"){
             console.log(msg);
             chrome.browserAction.setIcon({
                 path:"icon_able.png",
                 tabId: tab.id
             });
             chrome.browserAction.setPopup({
-                popup:"sketch/index.html",
+                popup:"sketch/Popup.html",
                 tabId: tab.id
             });
             chrome.tabs.sendMessage(tab.id,msg);
@@ -62,14 +73,14 @@ chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     console.log("create!",tabId);
     var msg=MakeMessage(tab);
-    if(msg.type=="naver"){
+    if(msg.type=="BackToCon_NaverComicInfo"){
         console.log(msg);
         chrome.browserAction.setIcon({
             path:"icon_able.png",
             tabId: tab.id
         });
         chrome.browserAction.setPopup({
-            popup:"sketch/index.html",
+            popup:"sketch/Popup.html",
             tabId: tab.id
         });
         chrome.tabs.sendMessage(tab.id,msg);
@@ -84,6 +95,14 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
         });
     }
 });
+
+function FormatNumberLength(num, length) {
+    var r = "" + num;
+    while (r.length < length) {
+        r = "0" + r;
+    }
+    return r;
+}
 
 function DownNaverComics(comicinfo){
     console.log(comicinfo);
@@ -114,18 +133,22 @@ function MakeMessage(tab){
     var tabId = tab.id;
     var type;
     var titleId=null;
+    var episode=null;
     var qs = getUrlParams(tabUrl);
     console.log(tab.id,tabUrl,qs);
-    if( tabUrl.search("comic.naver.com")>0 && tabUrl.search("titleId")>0)
+    if( tabUrl.search("comic.naver.com")>0 && tabUrl.search("titleId")>0 && tabUrl.search("no")>0)
     {
-        type="naver";
+        type="BackToCon_NaverComicInfo";
         titleId=qs.titleId;
+        episode=qs.no;
     }
     let msg={
         tabUrl:tabUrl,
         tabId:tabId,
         type:type,
-        comicId:titleId
+        comicId:titleId,
+        episode:episode,
+        company:"Naver"
     };
     return msg;
 

@@ -4,14 +4,14 @@
   "version": "0.2",
   "browser_action": {
     "default_icon": "icon_disable.png",
-    "default_popup": "sketch/index.html"
+    "default_popup": "sketch/Popup.html"
   },
   "content_scripts": [
     {
       "matches": [
         "<all_urls>"
       ],
-      "js": ["content.js"]
+      "js": ["jquery-3.4.1.min.js","content.js"]
     }
   ],
   "background": {
@@ -19,7 +19,6 @@
   },
   "permissions": [
     "tabs",
-    "storage",
     "downloads"
   ]
 }
